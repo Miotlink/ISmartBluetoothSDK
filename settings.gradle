@@ -1,0 +1,3 @@
+include ':miot-blue-smart'
+include ':app'
+rootProject.name = "ISmartBluetoothSDK"
