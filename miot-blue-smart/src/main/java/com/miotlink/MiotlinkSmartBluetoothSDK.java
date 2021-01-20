@@ -2,62 +2,33 @@ package com.miotlink;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.le.ScanFilter;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.ParcelUuid;
-import android.provider.Settings;
-import android.support.annotation.RequiresApi;
-import android.text.TextUtils;
-import android.util.Log;
 
 import com.miotlink.ble.Ble;
-
-import com.miotlink.ble.callback.BleConnectCallback;
-import com.miotlink.ble.callback.BleNotifyCallback;
-
-import com.miotlink.ble.callback.BleScanCallback;
-import com.miotlink.ble.callback.BleStatusCallback;
-import com.miotlink.ble.callback.BleWriteCallback;
 
 import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
 import com.miotlink.ble.listener.SmartListener;
-import com.miotlink.ble.model.BleDevice;
-import com.miotlink.ble.model.BleFactory;
 import com.miotlink.ble.model.BleModelDevice;
-import com.miotlink.ble.model.BluetoothDeviceStore;
-import com.miotlink.ble.model.ScanRecord;
 import com.miotlink.ble.service.BlueISmartImpl;
 import com.miotlink.ble.service.ISmart;
-import com.miotlink.ble.utils.ByteUtils;
 
-import com.miotlink.ble.utils.UuidUtils;
-
-
-import com.miotlink.protocol.BluetoothMessage;
-import com.miotlink.utils.HexUtil;
-
-import java.util.UUID;
-
-public class MiotlinkBluetoothSDK {
+public class MiotlinkSmartBluetoothSDK {
 
 
-    private static MiotlinkBluetoothSDK instance = null;
+    private static MiotlinkSmartBluetoothSDK instance = null;
 
 
 
     private Ble<BleModelDevice> ble = null;
 
-    public static synchronized MiotlinkBluetoothSDK getInstance() {
+    public static synchronized MiotlinkSmartBluetoothSDK getInstance() {
 
         if (instance == null) {
-            synchronized (MiotlinkBluetoothSDK.class) {
+            synchronized (MiotlinkSmartBluetoothSDK.class) {
                 if (instance == null) {
-                    instance = new MiotlinkBluetoothSDK();
+                    instance = new MiotlinkSmartBluetoothSDK();
                 }
             }
         }
