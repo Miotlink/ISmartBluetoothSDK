@@ -63,7 +63,7 @@ public final class HexUtil {
      * @return 十六进制String
      */
     public static String encodeHexStr(byte[] data) {
-        return encodeHexStr(data, true);
+        return encodeHexStr(data, false);
     }
 
     /**
