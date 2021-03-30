@@ -23,6 +23,11 @@ android {
     }
 }
 
+android {
+    lintOptions {
+        abortOnError false
+    }
+}
 
 
 
@@ -39,8 +44,9 @@ dependencies {
 publish {
     userOrg = 'miotlink2014'
     groupId = 'com.miotlink.smart'
-    artifactId = 'bluetooth'
-    publishVersion = '1.0.1'
-    desc = 'Oh hi, this is a nice description for a project, right?'
-    website = 'https://github.com/panpf/bintray-publish'
+    artifactId = 'ISmartBluetoothSDK'
+    publishVersion = '1.0.2'
+    desc = '杭州妙联蓝牙配网SDK'
+    website = 'https://github.com/Miotlink/ISmartBluetoothSDK'
 }
+//gradlew bintrayUpload -PbintrayUser=miotlink2014  -PbintrayKey=e9720b41087b7f8ff8544a3979fb93621b70fc8a  -PdryRun=false
