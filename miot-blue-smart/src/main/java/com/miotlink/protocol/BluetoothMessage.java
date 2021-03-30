@@ -8,7 +8,7 @@ import java.util.List;
 
 
 
-public class BluetoothMessage {
+class BluetoothMessage {
 
 
     private byte[] bytes=new byte[64];

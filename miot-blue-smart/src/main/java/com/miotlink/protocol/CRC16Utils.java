@@ -1,6 +1,6 @@
 package com.miotlink.protocol;
 
-public class CRC16Utils {
+ class CRC16Utils {
 	static final String HEXES = "0123456789ABCDEF";
 	byte uchCRCHi = (byte) 0xFF;
 	byte uchCRCLo = (byte) 0xFF;

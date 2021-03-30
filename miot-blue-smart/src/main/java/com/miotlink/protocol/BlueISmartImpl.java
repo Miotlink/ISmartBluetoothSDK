@@ -1,18 +1,15 @@
-package com.miotlink.ble.service;
+package com.miotlink.protocol;
 
 import android.Manifest;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.le.ScanFilter;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.os.ParcelUuid;
-import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 
+import com.bluetooth.sdk.R;
 import com.miotlink.ble.Ble;
 import com.miotlink.ble.BleLog;
 import com.miotlink.ble.callback.BleConnectCallback;
@@ -24,23 +21,23 @@ import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkConnectCallback;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
 import com.miotlink.ble.listener.SmartListener;
+import com.miotlink.ble.listener.SmartNotifyListener;
+import com.miotlink.ble.model.BleEntityData;
 import com.miotlink.ble.model.BleFactory;
 import com.miotlink.ble.model.BleModelDevice;
 import com.miotlink.ble.model.BluetoothDeviceStore;
 import com.miotlink.ble.model.ScanRecord;
-import com.miotlink.ble.utils.ThreadUtils;
+import com.miotlink.ble.service.ISmart;
 import com.miotlink.ble.utils.Utils;
 import com.miotlink.ble.utils.UuidUtils;
-import com.miotlink.protocol.BluetoothMessage;
-import com.miotlink.protocol.BluetoothProtocol;
-import com.miotlink.protocol.BluetoothProtocolImpl;
+import com.miotlink.utils.IBluetooth;
 import com.miotlink.utils.HexUtil;
 
 import java.util.Map;
 import java.util.UUID;
 
 public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements ISmart {
-    private static final String filter_name = "MLink";
+//    private static final String filter_name = "MLink";
     private Ble<BleModelDevice> ble = null;
     private SmartListener mSmartListener = null;
     private Context mContext = null;
@@ -52,6 +49,9 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     private String password = "";
     private ILinkBlueScanCallBack mILinkBlueScanCallBack = null;
     private ILinkSmartConfigListener mILinkSmartConfigListener = null;
+    private SmartNotifyListener smartNotifyListener=null;
+    private int errorCode= IBluetooth.Constant.ERROR_INIT_CODE;
+    private String errorMessage="";
 
     @Override
     public void init(Context mContext, SmartListener mSmartListener) throws Exception {
@@ -72,12 +72,12 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                 .setIgnoreRepeat(false)//设置是否过滤扫描到的设备(已扫描到的不会再次扫描)
                 .setConnectFailedRetryCount(3)//连接异常时（如蓝牙协议栈错误）,重新连接次数
                 .setConnectTimeout(10 * 1000)//设置连接超时时长
-                .setScanPeriod(5 * 60 * 1000)//设置扫描时长
+                .setScanPeriod(30 * 60 * 1000)//设置扫描时长
                 .setMaxConnectNum(7)//最大连接数量
-                .setUuidService(UUID.fromString(UuidUtils.uuid16To128("6600")))//设置主服务的uuid
-                .setUuidWriteCha(UUID.fromString(UuidUtils.uuid16To128("6602")))//设置可写特征的uuid
-                .setUuidReadCha(UUID.fromString(UuidUtils.uuid16To128("6601")))//设置可读特征的uuid （选填）
-                .setUuidNotifyCha(UUID.fromString(UuidUtils.uuid16To128("6601")))//设置可通知特征的uuid （选填，库中默认已匹配可通知特征的uuid）
+                .setUuidService(UUID.fromString(UuidUtils.uuid16To128(IBluetooth.SERVER_UUID)))//设置主服务的uuid
+                .setUuidWriteCha(UUID.fromString(UuidUtils.uuid16To128(IBluetooth.SERVER_WRITE_UUID)))//设置可写特征的uuid
+                .setUuidReadCha(UUID.fromString(UuidUtils.uuid16To128(IBluetooth.SERVER_READ_UUID)))//设置可读特征的uuid （选填）
+                .setUuidNotifyCha(UUID.fromString(UuidUtils.uuid16To128(IBluetooth.SERVER_NOTIFY_UUID)))//设置可通知特征的uuid （选填，库中默认已匹配可通知特征的uuid）
                 .setFactory(bleFactory)
                 .create(mContext, initCallback);
     }
@@ -137,14 +137,24 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     };
 
     @Override
-    public void onScan(final ILinkBlueScanCallBack mILinkBlueScanCallBack) throws Exception {
+    public void onScan(ILinkBlueScanCallBack mILinkBlueScanCallBack) throws Exception {
         if (ble == null) {
             ble = Ble.getInstance();
+        }
+        if (!ble.isSupportBle(mContext)) {
+            throw new Exception("该手机暂不支持蓝牙设备");
+        }
+        if (!ble.isBleEnable()) {
+            throw new Exception("蓝牙访问权限未打开");
+        }else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Utils.isGpsOpen(mContext)){
+            throw new Exception("Android 操作系统8.1以上未打开定位服务");
+        }else if (!Utils.isPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)&&
+                !Utils.isPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)){
+            throw new Exception("Android 操作系统8.0以上未打开定位权限");
         }
         bluetoothDeviceStore.clear();
         this.mILinkBlueScanCallBack = mILinkBlueScanCallBack;
         if (!ble.isBleEnable()) {
-
             ble.setBleStatusCallback(new BleStatusCallback() {
                 @Override
                 public void onBluetoothStatusChanged(boolean isOn) {
@@ -166,14 +176,17 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                         || bluetoothDeviceStore.getDeviceMap().containsKey(device.getBleAddress())) {
                     return;
                 }
-                if (!TextUtils.isEmpty(device.getBleName()) && device.getBleName().startsWith(filter_name)
+                if (!TextUtils.isEmpty(device.getBleName())
+                        && device.getBleName().startsWith(IBluetooth.FILTER_NAME)
                         || HexUtil.encodeHexStr(scanRecord).contains("6667")) {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             device.setScanRecord(ScanRecord.parseFromBytes(scanRecord));
                         }
                         bluetoothDeviceStore.addDevice(device);
-                        mILinkBlueScanCallBack.onScanDevice(device);
+                        if (mILinkBlueScanCallBack!=null){
+                            mILinkBlueScanCallBack.onScanDevice(device);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -221,7 +234,18 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                         }
                     }
                 }
+
+                @Override
+                public void onReady(BleModelDevice device) {
+                    super.onReady(device);
+                    if (ble != null) {
+                        ble.enableNotify(device, true, bleNotifyCallback);
+                    }
+                }
             });
+
+
+
         }
     }
 
@@ -232,7 +256,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             if (msg.what == 1000) {
                 try {
                     if (mILinkSmartConfigListener!=null){
-                        mILinkSmartConfigListener.onLinkSmartConfigTimeOut();
+                        mILinkSmartConfigListener.onLinkSmartConfigTimeOut(errorCode,errorMessage);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -249,7 +273,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         if (delayMillis<60){
             delayMillis=60;
         }
-        handler.sendEmptyMessageDelayed(1000, delayMillis*1000);
+        handler.sendEmptyMessageDelayed(IBluetooth.Constant.DELAYMillis, delayMillis*1000);
         this.ssid = ssid;
         this.password = password;
         this.mILinkSmartConfigListener = mILinkSmartConfigListener;
@@ -264,6 +288,11 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         @Override
         public void onConnectionChanged(BleModelDevice device) {
 
+            if (device.isConnected()){
+
+            }else if (device.isDisconnected()){
+
+            }
         }
 
         @Override
@@ -310,19 +339,41 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                 String errorMessage = "";
                                 if (!TextUtils.isEmpty(valueCode)) {
                                     if (TextUtils.equals("00", valueCode)) {
-                                        errorMessage = "未配网";
+                                        errorMessage = mContext.getResources().getString(R.string.ble_device_error_7001_message);
                                     } else if (TextUtils.equals("01", valueCode)) {
-                                        errorMessage = "未配网";
+                                        errorMessage = mContext.getResources().getString(R.string.ble_device_error_7001_message);
+                                    } else if (TextUtils.equals("02", valueCode)) {
+                                        errorCode= IBluetooth.Constant.ERROR_CONNECT_CODE;
+                                        errorMessage = mContext.getResources().getString(R.string.ble_device_error_7002_message);
                                     } else if (TextUtils.equals("03", valueCode)) {
-                                        errorMessage = "已连上路由器";
-                                    } else if (TextUtils.equals("0F", valueCode)) {
-                                        errorMessage = "配网成功";
-                                        handler.removeMessages(1000);
-                                    } else if (TextUtils.equals("FF", valueCode)) {
-                                        handler.removeMessages(1000);
-                                        errorMessage = "配网失败";
+                                        errorCode= IBluetooth.Constant.ERROR_PLATFORM_CODE;
+                                        errorMessage = mContext.getResources().getString(R.string.ble_device_error_7003_message);
+                                    } else if (TextUtils.equals("0f", valueCode)) {
+                                        errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
+                                        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+                                    } else if (TextUtils.equals("ff", valueCode)) {
+                                        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+                                        errorMessage = mContext.getResources().getString(R.string.ble_device_error_7255_message);
+                                        errorCode= IBluetooth.Constant.ERROR_PASSORD_CODE;
+                                        if (mILinkSmartConfigListener!=null){
+                                            mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, device.getMacAddress());
+                                        }
                                     }
-                                    mILinkSmartConfigListener.onLinkSmartConfigListener(Integer.parseInt(valueCode, 16), errorMessage, device.getMacAddress());
+                                    BleLog.e("message", errorMessage);
+
+
+                                }
+                            }else if (code==6){
+                                String valueHex=(String)decode.get("value");
+                                byte [] bytesValue=null;
+                                int len=0;
+                                if (decode.containsKey("byte")){
+                                    bytesValue=(byte[]) decode.get("byte");
+                                    len=bytesValue.length;
+                                }
+                                BleEntityData bleEntityData=new BleEntityData(valueHex,bytesValue,len);
+                                if (smartNotifyListener!=null){
+                                    smartNotifyListener.onSmartNotifyListener(1,"success",bleEntityData);
                                 }
                             }
                         }
@@ -335,16 +386,28 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     };
 
     @Override
-    public void sendUart(String mac, byte[] data) throws Exception {
+    public void sendUartData(String mac, byte[] data, SmartNotifyListener smartNotifyListener) throws Exception {
+        this.smartNotifyListener=smartNotifyListener;
         if (ble != null) {
             if (bluetoothDeviceStore.getDeviceMap().containsKey(mac)) {
                 BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(mac);
                 if (bleModelDevice != null) {
-                    ble.writeByUuid(bleModelDevice, data,
-                            Ble.options().getUuidService(),
-                            Ble.options().getUuidWriteCha(),
-                            BlueISmartImpl.this);
+                    boolean connected = ble.getBleDevice(mac).isConnected();
+                    if (connected){
+                        BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
+                        byte[] bytes = bluetoothProtocol.hexEncode(data);
+                        ble.writeByUuid(bleModelDevice, bytes,
+                                Ble.options().getUuidService(),
+                                Ble.options().getUuidWriteCha(),
+                                BlueISmartImpl.this);
+                    }else {
+                        if (smartNotifyListener!=null){
+                            smartNotifyListener.onSmartNotifyListener(-1, "断开连接", null);
+                        }
+                    }
                 }
+
+
             }
 
         }
@@ -353,7 +416,8 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     @Override
     public void onDisConnect(String macCode) throws Exception {
         mILinkSmartConfigListener=null;
-        handler.removeMessages(1000);
+        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+        smartNotifyListener=null;
         if (ble != null) {
             try {
                 if (!TextUtils.isEmpty(macCode)) {
@@ -387,4 +451,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     public void onWriteSuccess(BleModelDevice device, BluetoothGattCharacteristic characteristic) {
 
     }
+
+   
 }

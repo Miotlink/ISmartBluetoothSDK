@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BluetoothProtocolImpl implements BluetoothProtocol {
+ class BluetoothProtocolImpl implements BluetoothProtocol {
 
 
     @Override
@@ -67,12 +67,15 @@ public class BluetoothProtocolImpl implements BluetoothProtocol {
                     switch (decode.getCode()){
                         case 2:
                             value.put("value",  HexUtil.encodeHexStr(bytes1));
+                            value.put("byte",  bytes1);
                             break;
                         case 4:
                             value.put("value",  HexUtil.encodeHexStr(bytes1));
+                            value.put("byte",  bytes1);
                             break;
                         case 6:
                             value.put("value", HexUtil.encodeHexStr(bytes1));
+                            value.put("byte",  bytes1);
                             break;
                     }
                 }
