@@ -1,0 +1,10 @@
+<resources>
+    <string name="ble_device_error_7010_message">1.The device is disconnected from the phone, please make sure the device is close to the phone。</string>
+    <string name="ble_device_error_7001_message">1.The device is not equipped with a network。</string>
+    <string name="ble_device_error_7002_message">1.设备配网中。</string>
+    <string name="ble_device_error_7003_message">1.The device is connected to the router, but not to the platform。\n2.Please check if the device has been added to the platform</string>
+    <string name="ble_device_error_7255_message">1.The device has entered the configuration mode,\n2.The name of WiFi not in chinese,\n3.The password of WiFi is correct,\n4.If long or frequently add device operation, ensure that the router has restarted.</string>
+
+
+
+</resources>
