@@ -4,24 +4,23 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
-
-import com.miotlink.ble.Ble;
+import android.text.TextUtils;
 
 import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
 import com.miotlink.ble.listener.SmartListener;
-import com.miotlink.ble.model.BleModelDevice;
-import com.miotlink.ble.service.BlueISmartImpl;
+import com.miotlink.protocol.BlueISmartImpl;
 import com.miotlink.ble.service.ISmart;
+import com.miotlink.utils.IBluetooth;
 
 public class MiotlinkSmartBluetoothSDK {
 
 
-    private static MiotlinkSmartBluetoothSDK instance = null;
+    private static volatile MiotlinkSmartBluetoothSDK instance = null;
 
 
 
-    private Ble<BleModelDevice> ble = null;
+
 
     public static synchronized MiotlinkSmartBluetoothSDK getInstance() {
 
@@ -35,17 +34,46 @@ public class MiotlinkSmartBluetoothSDK {
         return instance;
     }
 
-    private Context mContext;
 
-    private ILinkBlueScanCallBack mBlueScanCallBack;
 
 
 
     private ISmart iSmart=null;
 
-    public void setDebug(boolean isDebug){
+    /**
+     * 打印数据
+     * @param isDebug
+     */
+    public static void setDebug(boolean isDebug){
         BlueISmartImpl.Debug=isDebug;
     }
+
+    /**
+     * 设置UUID  参数
+     * @param serverUuid
+     * @param writeUuid
+     * @param readUuid
+     * @param notifyUuid
+     */
+    public static void setServerUUID(String serverUuid,String writeUuid,String readUuid,String notifyUuid){
+        if (!TextUtils.isEmpty(serverUuid)){
+            IBluetooth.SERVER_UUID =serverUuid;
+        }
+        if (!TextUtils.isEmpty(writeUuid)){
+            IBluetooth.SERVER_WRITE_UUID=writeUuid;
+        }
+        if (!TextUtils.isEmpty(readUuid)){
+            IBluetooth.SERVER_READ_UUID=readUuid;
+        }
+        if (!TextUtils.isEmpty(notifyUuid)){
+            IBluetooth.SERVER_NOTIFY_UUID=notifyUuid;
+        }
+    }
+
+    public static void setBleFilterName(String name){
+        IBluetooth.FILTER_NAME=name;
+    }
+
 
     /**
      * 初始化参数
@@ -53,12 +81,15 @@ public class MiotlinkSmartBluetoothSDK {
      * @param smartListener
      * @throws Exception
      */
-    public void init(Context mContext,SmartListener smartListener) throws Exception {
-        this.mContext = mContext;
-        if (iSmart==null){
-            iSmart=new BlueISmartImpl();
+    public void init(Context mContext,String appKey,SmartListener smartListener)  {
+        try {
+            if (iSmart==null){
+                iSmart=new BlueISmartImpl();
+            }
+            iSmart.init(mContext, smartListener);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        iSmart.init(mContext, smartListener);
 
     }
 
@@ -67,8 +98,6 @@ public class MiotlinkSmartBluetoothSDK {
      * @param scanCallBack
      */
     public void startScan(ILinkBlueScanCallBack scanCallBack) {
-        this.mBlueScanCallBack = scanCallBack;
-
         try {
             if (iSmart==null){
                 iSmart=new BlueISmartImpl();
@@ -81,18 +110,25 @@ public class MiotlinkSmartBluetoothSDK {
 
     private String macAddress="";
 
-    public void startSmartConfig(String macAddress, String ssid, String passowrd,int delayMillis ,ILinkSmartConfigListener linkSmartConfigListener){
+    /**
+     *
+     * @param macCode  mac地址
+     * @param ssid  路由器账户
+     * @param passowrd 路由器密码
+     * @param delayMillis 设置超时时间 默认60s
+     * @param linkSmartConfigListener
+     */
+    public void startSmartConfig(String macCode, String ssid, String passowrd,int delayMillis,ILinkSmartConfigListener linkSmartConfigListener){
         try {
             if (iSmart==null){
                 iSmart=new BlueISmartImpl();
             }
-            this.macAddress=macAddress;
-            iSmart.onStartSmartConfig(macAddress,ssid,passowrd,delayMillis,linkSmartConfigListener);
+            this.macAddress=macCode;
+            iSmart.onStartSmartConfig(macCode,ssid,passowrd,delayMillis,linkSmartConfigListener);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public void onStopSmartConfig(String macAddress){
         try {
             if (iSmart==null){
