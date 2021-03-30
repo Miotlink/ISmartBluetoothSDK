@@ -124,11 +124,13 @@ public final class BleModelDevice extends BleDevice implements Parcelable {
     }
 
 
+    @Override
     public ScanRecord getScanRecord() {
         return scanRecord;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
     public void setScanRecord(ScanRecord scanRecord) {
         if (scanRecord!=null){
             byte[] mScanRecord=scanRecord.getBytes();

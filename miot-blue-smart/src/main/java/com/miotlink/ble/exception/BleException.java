@@ -34,6 +34,7 @@ public class BleException extends RuntimeException implements Serializable{
         return ex;
     }
 
+    @Override
     public Throwable getCause() {
         return ex;
     }

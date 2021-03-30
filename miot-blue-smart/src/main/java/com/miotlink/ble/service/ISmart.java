@@ -6,6 +6,7 @@ import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkConnectCallback;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
 import com.miotlink.ble.listener.SmartListener;
+import com.miotlink.ble.listener.SmartNotifyListener;
 
 public interface ISmart {
 
@@ -55,7 +56,7 @@ public interface ISmart {
      * @param data
      * @throws Exception
      */
-    public void sendUart(String mac,byte[] data)throws Exception;
+    public void sendUartData(String mac, byte[] data, SmartNotifyListener smartNotifyListener)throws Exception;
 
 
     public void onDisConnect(String macCode)throws Exception;

@@ -12,5 +12,5 @@ public interface ILinkSmartConfigListener {
     public void onLinkSmartConfigListener(int error,String errorMessage,String data)throws Exception;
 
 
-    public void onLinkSmartConfigTimeOut()throws Exception;
+    public void onLinkSmartConfigTimeOut(int error,String errorMessage)throws Exception;
 }
