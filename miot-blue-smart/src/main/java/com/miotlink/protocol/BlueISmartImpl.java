@@ -47,6 +47,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     private String ssid = "";
     private String password = "";
+    private String macCode="";
     private ILinkBlueScanCallBack mILinkBlueScanCallBack = null;
     private ILinkSmartConfigListener mILinkSmartConfigListener = null;
     private SmartNotifyListener smartNotifyListener=null;
@@ -154,6 +155,9 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         }
         bluetoothDeviceStore.clear();
         this.mILinkBlueScanCallBack = mILinkBlueScanCallBack;
+        if (ble.isScanning()){
+            ble.stopScan();
+        }
         if (!ble.isBleEnable()) {
             ble.setBleStatusCallback(new BleStatusCallback() {
                 @Override
@@ -258,6 +262,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             super.handleMessage(msg);
             if (msg.what == 1000) {
                 try {
+                    onDisConnect(macCode);
                     if (mILinkSmartConfigListener!=null){
                         mILinkSmartConfigListener.onLinkSmartConfigTimeOut(errorCode,errorMessage);
                     }
@@ -279,10 +284,10 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         handler.sendEmptyMessageDelayed(IBluetooth.Constant.DELAYMillis, delayMillis*1000);
         this.ssid = ssid;
         this.password = password;
+        this.macCode=macCode;
         this.mILinkSmartConfigListener = mILinkSmartConfigListener;
         if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
             BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
-            bleModelDevice.setAutoConnecting(false);
             ble.connect(bleModelDevice, bleModelDeviceCallback);
         }
     }
@@ -314,7 +319,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                 BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
                 byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
                 if (bytes != null) {
-                    BleLog.e("onConnectionChanged", HexUtil.encodeHexStr(bytes));
                     ble.writeByUuid(device, bytes,
                             Ble.options().getUuidService(),
                             Ble.options().getUuidWriteCha(),
@@ -343,6 +347,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                         Map<String, Object> decode = bluetoothProtocol.decode(value);
                         if (decode != null && decode.containsKey("code") && decode.containsKey("value")) {
                             int code = (int) decode.get("code");
+                            BleLog.e("decode",decode.toString());
                             if (code == 4) {
                                 String valueCode = (String) decode.get("value");
                                 BleLog.e("onChanged", "Code:" + code + "value:" + valueCode);
@@ -358,10 +363,16 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     } else if (TextUtils.equals("03", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_PLATFORM_CODE;
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7003_message);
-                                    } else if (TextUtils.equals("0f", valueCode)) {
+                                    } else if (TextUtils.equals("0F", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
+                                        errorMessage="SUCCESS";
+                                        ble.disconnect(device);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
-                                    } else if (TextUtils.equals("ff", valueCode)) {
+                                        if (mILinkSmartConfigListener!=null){
+                                            mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, device.getMacAddress());
+                                        }
+                                    } else if (TextUtils.equals("FF", valueCode)) {
+                                        ble.disconnect(device);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7255_message);
                                         errorCode= IBluetooth.Constant.ERROR_PASSORD_CODE;
@@ -430,15 +441,18 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         smartNotifyListener=null;
         if (ble != null) {
             try {
+                if (TextUtils.isEmpty(macCode)) {
+                    macCode=this.macCode;
+                }
                 if (!TextUtils.isEmpty(macCode)) {
                     if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
                         BleModelDevice bleDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
                         if (bleDevice != null) {
-                            if (bleDevice.isConnecting()) {
-                                ble.cancelConnecting(bleDevice);
-                            } else if (bleDevice.isConnected()) {
-                                ble.disconnect(bleDevice);
-                            }
+//                            if (bleDevice.isConnecting()) {
+//                                ble.cancelConnecting(bleDevice);
+//                            } else if (bleDevice.isConnected()) {
+//                            }
+                            ble.disconnect(bleDevice);
                         }
                     }
                 }

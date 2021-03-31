@@ -13,21 +13,21 @@ import com.miotlink.protocol.BlueISmartImpl;
 import com.miotlink.ble.service.ISmart;
 import com.miotlink.utils.IBluetooth;
 
-public class MiotlinkSmartBluetoothSDK {
+public class MiotSmartBluetoothSDK {
 
 
-    private static volatile MiotlinkSmartBluetoothSDK instance = null;
+    private static volatile MiotSmartBluetoothSDK instance = null;
 
 
 
 
 
-    public static synchronized MiotlinkSmartBluetoothSDK getInstance() {
+    public static synchronized MiotSmartBluetoothSDK getInstance() {
 
         if (instance == null) {
-            synchronized (MiotlinkSmartBluetoothSDK.class) {
+            synchronized (MiotSmartBluetoothSDK.class) {
                 if (instance == null) {
-                    instance = new MiotlinkSmartBluetoothSDK();
+                    instance = new MiotSmartBluetoothSDK();
                 }
             }
         }
@@ -179,6 +179,18 @@ public class MiotlinkSmartBluetoothSDK {
                 e.printStackTrace();
             }
         }
+    }
+
+    public boolean onDisConnect(){
+        if (iSmart!=null){
+            try {
+                iSmart.onDisConnect("");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
     }
     public void onDestory() {
         if (iSmart!=null){

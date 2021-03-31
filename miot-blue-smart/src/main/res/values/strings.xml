@@ -2,7 +2,7 @@
     <string name="ble_device_error_7010_message">1.设备与手机断开连接，请确保设备与手机距离靠近。</string>
     <string name="ble_device_error_7001_message">1.设备开始配网。</string>
     <string name="ble_device_error_7002_message">1.设备配网中。</string>
-    <string name="ble_device_error_7003_message">1.设备已连上路由器,未连接到平台。\n2.请检查设备是否已经添加到平台</string>
+    <string name="ble_device_error_7003_message">1.设备已连上路由器,未连接到平台。</string>
     <string name="ble_device_error_7255_message">1.设备已经进入配置模式，\n2.WiFi 名称最好不使用中文，\n3.WiFi 密码正确，\n4.若长时间或者频繁进行添加设备操作，确保路由器已重启，\n5.设备暂不支持5G路由器配网。</string>
 
 </resources>

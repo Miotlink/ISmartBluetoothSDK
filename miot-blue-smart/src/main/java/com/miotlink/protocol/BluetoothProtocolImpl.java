@@ -13,7 +13,7 @@ import java.util.Map;
 
 
     @Override
-    public byte[] SmartConfigEncode(String ssid, String password) {
+    public byte[] smartConfigEncode(String ssid, String password) {
         BluetoothMessage bluetoothMessage=new BluetoothMessage();
         BluetoothMessage.BlueMessageBody blueMessageBody = bluetoothMessage.getBlueMessageBody(3, 2);
         if (blueMessageBody!=null){
