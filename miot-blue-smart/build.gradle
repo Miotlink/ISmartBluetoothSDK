@@ -1,6 +1,31 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.panpf.bintray-publish'
+//apply plugin: 'com.github.panpf.bintray-publish'
+group '[com.miotlink.bluetooth]'
+version '[1.0.3]'
+def artifactId = '[ISmartBluetoothSDK]'
 
+apply plugin: 'maven'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'https://packages.aliyun.com/maven/repository/2016367-release-GHmELg/') {
+                authentication(
+                        userName: '5f0c1af14c4e70fdbf9e26c6',
+                        password: 'd7I)7(NdDOcw'
+                )
+            }
+            snapshotRepository(url: 'https://packages.aliyun.com/maven/repository/2016367-snapshot-yufnfx/') {
+                authentication(
+                        userName: '5f0c1af14c4e70fdbf9e26c6',
+                        password: 'd7I)7(NdDOcw'
+                )
+            }
+            pom.version = '1.0.3'
+            pom.artifactId = 'ISmartBluetoothSDK'
+            pom.groupId = 'com.miotlink.bluetooth'
+        }
+    }
+}
 android {
     compileSdkVersion 28
     buildToolsVersion "28.0.0"
@@ -38,15 +63,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
+//    implementation("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
 
 }
-publish {
-    userOrg = 'miotlink2014'
-    groupId = 'com.miotlink.bluetooth'
-    artifactId = 'ISmartBluetoothSDK'
-    publishVersion = '1.0.2'
-    desc = '杭州妙联蓝牙WIFI配网SDK,实现功能蓝牙发现、蓝牙建立连接、蓝牙WIFI配网、串口通讯等 '
-    website = 'https://github.com/Miotlink/ISmartBluetoothSDK'
-}
+//publish {
+//    userOrg = 'miotlink2014'
+//    groupId = 'com.miotlink.bluetooth'
+//    artifactId = 'ISmartBluetoothSDK'
+//    publishVersion = '1.0.2'
+//    desc = '杭州妙联蓝牙WIFI配网SDK,实现功能蓝牙发现、蓝牙建立连接、蓝牙WIFI配网、串口通讯等 '
+//    website = 'https://github.com/Miotlink/ISmartBluetoothSDK'
+//}
 //gradlew bintrayUpload -PbintrayUser=miotlink2014  -PbintrayKey=e9720b41087b7f8ff8544a3979fb93621b70fc8a  -PdryRun=false

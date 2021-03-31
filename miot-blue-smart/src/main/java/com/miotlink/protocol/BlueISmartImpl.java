@@ -198,7 +198,10 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     @Override
     public void openBluetooth() {
-
+        if (ble == null) {
+            ble = Ble.getInstance();
+        }
+        ble.turnOnBlueToothNo();
 
     }
 
@@ -291,7 +294,8 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             if (device.isConnected()){
 
             }else if (device.isDisconnected()){
-
+                errorCode= IBluetooth.Constant.ERROR_DISCONNECT_CODE;
+                errorMessage= mContext.getResources().getString(R.string.ble_device_error_7010_message);
             }
         }
 
@@ -308,17 +312,23 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             super.onServicesDiscovered(device, gatt);
             if (device.isConnected()) {
                 BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
-                byte[] bytes = bluetoothProtocol.SmartConfigEncode(ssid, password);
+                byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
                 if (bytes != null) {
                     BleLog.e("onConnectionChanged", HexUtil.encodeHexStr(bytes));
-                    ble.writeByUuid(device, bluetoothProtocol.SmartConfigEncode(ssid, password),
+                    ble.writeByUuid(device, bytes,
                             Ble.options().getUuidService(),
                             Ble.options().getUuidWriteCha(),
                           BlueISmartImpl.this);
                 }
             }
-
         }
+
+        @Override
+        public void onConnectFailed(BleModelDevice device, int errorCode) {
+            super.onConnectFailed(device, errorCode);
+        }
+
+
     };
 
     BleNotifyCallback<BleModelDevice> bleNotifyCallback = new BleNotifyCallback<BleModelDevice>() {

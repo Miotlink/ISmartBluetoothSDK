@@ -140,11 +140,26 @@ public class MiotlinkSmartBluetoothSDK {
         }
     }
 
+    /**
+     * 检查蓝牙权限
+     * @return
+     * 2 该手机不支持蓝牙
+     */
     public int checkPermissions(){
         if(iSmart!=null){
             return iSmart.checkAuthority();
         }
         return 0;
+    }
+
+    /**
+     * 强制打开蓝牙开关
+     */
+    public void turnOnBlueToothNo(){
+        if (iSmart!=null){
+            iSmart.openBluetooth();
+        }
+
     }
 
 

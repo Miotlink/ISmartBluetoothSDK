@@ -10,7 +10,7 @@ public interface BluetoothProtocol {
      * @param password
      * @return
      */
-    public byte[] SmartConfigEncode(String ssid,String password);
+    public byte[] smartConfigEncode(String ssid,String password);
 
     public byte[] HeartbeatEncode();
 
