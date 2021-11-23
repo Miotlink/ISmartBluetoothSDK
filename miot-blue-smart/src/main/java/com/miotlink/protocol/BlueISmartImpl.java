@@ -361,15 +361,15 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     } else if (TextUtils.equals("03", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_PLATFORM_CODE;
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7003_message);
-                                    } else if (TextUtils.equals("0F", valueCode)) {
+                                    } else if (TextUtils.equals("0F", valueCode)||TextUtils.equals("0f", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
                                         errorMessage="SUCCESS";
                                         ble.disconnect(device);
-//                                        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         if (mILinkSmartConfigListener!=null){
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, device.getMacAddress());
                                         }
-                                    } else if (TextUtils.equals("FF", valueCode)) {
+                                        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+                                    } else if (TextUtils.equals("FF", valueCode)||TextUtils.equals("ff", valueCode)) {
                                         ble.disconnect(device);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7255_message);
