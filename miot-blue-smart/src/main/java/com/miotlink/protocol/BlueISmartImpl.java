@@ -446,10 +446,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                     if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
                         BleModelDevice bleDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
                         if (bleDevice != null) {
-//                            if (bleDevice.isConnecting()) {
-//                                ble.cancelConnecting(bleDevice);
-//                            } else if (bleDevice.isConnected()) {
-//                            }
                             ble.disconnect(bleDevice);
                         }
                     }
