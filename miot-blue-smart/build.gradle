@@ -20,7 +20,7 @@ uploadArchives {
                         password: 'd7I)7(NdDOcw'
                 )
             }
-            pom.version = '1.0.3'
+            pom.version = '1.0.11'
             pom.artifactId = 'ISmartBluetoothSDK'
             pom.groupId = 'com.miotlink.bluetooth'
         }
