@@ -295,9 +295,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     BleConnectCallback<BleModelDevice> bleModelDeviceCallback = new BleConnectCallback<BleModelDevice>() {
         @Override
         public void onConnectionChanged(BleModelDevice device) {
-
             if (device.isConnected()){
-
             }else if (device.isDisconnected()){
                 errorCode= IBluetooth.Constant.ERROR_DISCONNECT_CODE;
                 errorMessage= mContext.getResources().getString(R.string.ble_device_error_7010_message);
@@ -367,7 +365,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
                                         errorMessage="SUCCESS";
                                         ble.disconnect(device);
-                                        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+//                                        handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         if (mILinkSmartConfigListener!=null){
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, device.getMacAddress());
                                         }

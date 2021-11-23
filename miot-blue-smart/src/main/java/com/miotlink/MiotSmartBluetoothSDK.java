@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
 import com.miotlink.ble.listener.SmartListener;
+import com.miotlink.ble.listener.SmartNotifyListener;
 import com.miotlink.protocol.BlueISmartImpl;
 import com.miotlink.ble.service.ISmart;
 import com.miotlink.utils.IBluetooth;
@@ -167,6 +168,16 @@ public class MiotSmartBluetoothSDK {
     public void startBluetooth(Activity activity, int requestCode) {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         activity.startActivityForResult(enableBtIntent, requestCode);
+    }
+
+    public void send(String macCode, byte [] bytes, SmartNotifyListener smartNotifyListener){
+        if (iSmart!=null){
+            try {
+                iSmart.sendUartData(macCode,bytes,smartNotifyListener);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
