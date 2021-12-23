@@ -123,12 +123,16 @@ public final class BleRequestImpl<T extends BleDevice> {
 
         }
 
+        @Override
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status){
             if (gatt != null && gatt.getDevice() != null) {
                 BleLog.d(TAG, "onMtuChanged mtu=" + mtu + ",status=" + status);
                 if (null != mtuWrapperCallback){
-                    mtuWrapperCallback.onMtuChanged(getBleDeviceInternal(gatt.getDevice().getAddress()), mtu, status);
+                    if (BluetoothGatt.GATT_SUCCESS==status) {
+                        mtuWrapperCallback.onMtuChanged(getBleDeviceInternal(gatt.getDevice().getAddress()), mtu, status);
+                    }
+
                 }
             }
         }

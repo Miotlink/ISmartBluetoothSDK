@@ -7,21 +7,25 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+
 import android.text.TextUtils;
 
 import com.bluetooth.sdk.R;
 import com.miotlink.ble.Ble;
 import com.miotlink.ble.BleLog;
 import com.miotlink.ble.callback.BleConnectCallback;
+import com.miotlink.ble.callback.BleMtuCallback;
 import com.miotlink.ble.callback.BleNotifyCallback;
 import com.miotlink.ble.callback.BleScanCallback;
 import com.miotlink.ble.callback.BleStatusCallback;
 import com.miotlink.ble.callback.BleWriteCallback;
+import com.miotlink.ble.callback.BleWriteEntityCallback;
 import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkConnectCallback;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
 import com.miotlink.ble.listener.SmartListener;
 import com.miotlink.ble.listener.SmartNotifyListener;
+import com.miotlink.ble.model.BleDevice;
 import com.miotlink.ble.model.BleEntityData;
 import com.miotlink.ble.model.BleFactory;
 import com.miotlink.ble.model.BleModelDevice;
@@ -37,7 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements ISmart {
-//    private static final String filter_name = "MLink";
+    //    private static final String filter_name = "MLink";
     private Ble<BleModelDevice> ble = null;
     private SmartListener mSmartListener = null;
     private Context mContext = null;
@@ -182,7 +186,9 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                 }
                 if (!TextUtils.isEmpty(device.getBleName())
                         && device.getBleName().startsWith(IBluetooth.FILTER_NAME)
-                        || HexUtil.encodeHexStr(scanRecord).contains("6667")) {
+                        || HexUtil.encodeHexStr(scanRecord).contains("6667")
+                        || !TextUtils.isEmpty(device.getBleName())
+                        &&device.getBleName().startsWith("Hi-Huawei-Mars")) {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             device.setScanRecord(ScanRecord.parseFromBytes(scanRecord));
@@ -311,18 +317,73 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         }
 
         @Override
-        public void onServicesDiscovered(BleModelDevice device, BluetoothGatt gatt) {
-            super.onServicesDiscovered(device, gatt);
-            if (device.isConnected()) {
-                BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
-                byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
-                if (bytes != null) {
-                    ble.writeByUuid(device, bytes,
-                            Ble.options().getUuidService(),
-                            Ble.options().getUuidWriteCha(),
-                          BlueISmartImpl.this);
+        public void onServicesDiscovered(final BleModelDevice modelDevice, BluetoothGatt gatt) {
+            if (modelDevice.isConnected()) {
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        ble.setMTU(modelDevice.getBleAddress(), 128, new BleMtuCallback<BleModelDevice>() {
+                            @Override
+                            public void onMtuChanged(BleModelDevice device, int mtu, int status) {
+                                super.onMtuChanged(device, mtu, status);
+                                BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
+                                byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
+                                if (bytes != null) {
+                                    ble.writeByUuid(modelDevice, bytes, Ble.options().getUuidService(), Ble.options().getUuidWriteCha(), new BleWriteCallback<BleModelDevice>() {
+                                        @Override
+                                        public void onWriteSuccess(BleModelDevice device, BluetoothGattCharacteristic characteristic) {
+                                            BleLog.e("onWriteSuccess", "onWriteSuccess");
+                                        }
+
+                                        @Override
+                                        public void onWriteFailed(BleModelDevice device, int failedCode) {
+                                            super.onWriteFailed(device, failedCode);
+                                        }
+                                    });
+                                }
+                            }
+                        });
+//                        BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
+//                        byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
+//                        if (bytes != null) {
+//                            ble.writeEntity(modelDevice, bytes,
+//                                    20,
+//                                    100,
+//                                    new BleWriteEntityCallback(){
+//
+//                                        @Override
+//                                        public void onWriteSuccess() {
+//
+//                                            BleLog.e("onWriteSuccess","------onWriteSuccess---------");
+//                                        }
+//
+//                                        @Override
+//                                        public void onWriteFailed() {
+//                                            BleLog.e("onWriteSuccess","------onWriteFailed---------");
+//                                        }
+//                                    });
+//                        }
+                    }
                 }
+
+                ).start();
+
+//                ble.setMTU(modelDevice.getBleAddress(), 128, new BleMtuCallback<BleModelDevice>(){
+//                    @Override
+//                    public void onMtuChanged(final BleModelDevice device, int mtu, int status) {
+//                        super.onMtuChanged(device, mtu, status);
+
+//                    }
+//                });
+
             }
+            super.onServicesDiscovered(modelDevice, gatt);
+
         }
 
         @Override
@@ -447,6 +508,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                         BleModelDevice bleDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
                         if (bleDevice != null) {
                             ble.disconnect(bleDevice);
+//                            ble.refreshDeviceCache(bleDevice.getBleAddress());
                         }
                     }
                 }
@@ -470,5 +532,5 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     }
 
-   
+
 }

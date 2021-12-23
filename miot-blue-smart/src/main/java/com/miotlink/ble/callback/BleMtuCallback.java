@@ -9,6 +9,6 @@ import com.miotlink.ble.model.BleDevice;
 
 public abstract class BleMtuCallback<T> {
 
-    public void onMtuChanged(BleDevice device, int mtu, int status){}
+    public void onMtuChanged(T device, int mtu, int status){}
 
 }
