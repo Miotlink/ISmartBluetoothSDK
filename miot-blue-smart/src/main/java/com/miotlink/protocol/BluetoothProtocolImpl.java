@@ -30,7 +30,8 @@ import java.util.Map;
         return new byte[0];
     }
 
-    @Override
+
+     @Override
     public byte[] HeartbeatEncode() {
         BluetoothMessage bluetoothMessage=new BluetoothMessage();
         BluetoothMessage.BlueMessageBody blueMessageBody = bluetoothMessage.getBlueMessageBody(1, 1);
@@ -43,7 +44,28 @@ import java.util.Map;
         return new byte[0];
     }
 
-    @Override
+     @Override
+     public byte[] bleSmartConfig() {
+         BluetoothMessage bluetoothMessage=new BluetoothMessage();
+         BluetoothMessage.BlueMessageBody blueMessageBody = bluetoothMessage.getBlueMessageBody(7, 1);
+         if (blueMessageBody!=null){
+             blueMessageBody.addPropertys(1, new byte[]{0x01});
+             bluetoothMessage.encode();
+             return bluetoothMessage.getmBytes();
+         }
+         return new byte[0];
+     }
+
+     @Override
+     public byte[] getDeviceInfo() {
+         BluetoothMessage bluetoothMessage=new BluetoothMessage();
+         BluetoothMessage.BlueMessageBody blueMessageBody = bluetoothMessage.getBlueMessageBody(7, 1);
+         blueMessageBody.addPropertys(1, 0x01);
+         bluetoothMessage.encode();
+         return bluetoothMessage.getmBytes();
+     }
+
+     @Override
     public byte[] hexEncode(byte[] hex) {
         BluetoothMessage bluetoothMessage=new BluetoothMessage();
         BluetoothMessage.BlueMessageBody blueMessageBody = bluetoothMessage.getBlueMessageBody(2, 1);
@@ -62,7 +84,6 @@ import java.util.Map;
                 List<Object> propertys = decode.getPropertys(bytes);
                 if (propertys!=null){
                     value.put("code", decode.getCode());
-
                     byte[] bytes1=(byte[]) propertys.get(0);
                     switch (decode.getCode()){
                         case 2:
@@ -74,6 +95,10 @@ import java.util.Map;
                             value.put("byte",  bytes1);
                             break;
                         case 6:
+                            value.put("value", HexUtil.encodeHexStr(bytes1));
+                            value.put("byte",  bytes1);
+                            break;
+                        case 8:
                             value.put("value", HexUtil.encodeHexStr(bytes1));
                             value.put("byte",  bytes1);
                             break;

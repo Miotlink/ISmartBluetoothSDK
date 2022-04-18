@@ -14,6 +14,9 @@ public interface BluetoothProtocol {
 
     public byte[] HeartbeatEncode();
 
+    public byte[] bleSmartConfig();
+
+    public byte[] getDeviceInfo();
     public byte[] hexEncode(byte[] hex);
 
     public Map<String,Object> decode(byte [] bytes);

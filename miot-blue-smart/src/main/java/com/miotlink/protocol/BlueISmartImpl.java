@@ -37,6 +37,8 @@ import com.miotlink.ble.utils.UuidUtils;
 import com.miotlink.utils.IBluetooth;
 import com.miotlink.utils.HexUtil;
 
+import org.json.JSONObject;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,6 +59,14 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     private SmartNotifyListener smartNotifyListener=null;
     private int errorCode= IBluetooth.Constant.ERROR_INIT_CODE;
     private String errorMessage="";
+
+    private String deviceName="";
+
+    private boolean isOpen;
+
+    private BleModelDevice bleModelDevice=null;
+
+    private MyGetDeviceInfoThread myGetDeviceInfoThread=null;
 
     @Override
     public void init(Context mContext, SmartListener mSmartListener) throws Exception {
@@ -101,6 +111,12 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             return 5;
         }
         return 1;
+
+    }
+
+    @Override
+    public void setDeviceInfo(boolean isOpen) {
+        this.isOpen=isOpen;
 
     }
 
@@ -230,6 +246,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         }
         if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
             BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
+            this.bleModelDevice=bleModelDevice;
             ble.connect(bleModelDevice, new BleConnectCallback<BleModelDevice>() {
                 @Override
                 public void onConnectionChanged(BleModelDevice device) {
@@ -294,6 +311,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         this.mILinkSmartConfigListener = mILinkSmartConfigListener;
         if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
             BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
+            this.bleModelDevice=bleModelDevice;
             ble.connect(bleModelDevice, bleModelDeviceCallback);
         }
     }
@@ -331,6 +349,13 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                             @Override
                             public void onMtuChanged(BleModelDevice device, int mtu, int status) {
                                 super.onMtuChanged(device, mtu, status);
+                                if (myGetDeviceInfoThread!=null){
+                                    myGetDeviceInfoThread.interrupt();
+                                    myGetDeviceInfoThread=null;
+                                }
+                                myGetDeviceInfoThread=new MyGetDeviceInfoThread();
+                                myGetDeviceInfoThread.setBleModelDevice(device);
+                                myGetDeviceInfoThread.start();
                                 BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
                                 byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
                                 if (bytes != null) {
@@ -348,39 +373,10 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                 }
                             }
                         });
-//                        BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
-//                        byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
-//                        if (bytes != null) {
-//                            ble.writeEntity(modelDevice, bytes,
-//                                    20,
-//                                    100,
-//                                    new BleWriteEntityCallback(){
-//
-//                                        @Override
-//                                        public void onWriteSuccess() {
-//
-//                                            BleLog.e("onWriteSuccess","------onWriteSuccess---------");
-//                                        }
-//
-//                                        @Override
-//                                        public void onWriteFailed() {
-//                                            BleLog.e("onWriteSuccess","------onWriteFailed---------");
-//                                        }
-//                                    });
-//                        }
                     }
                 }
 
                 ).start();
-
-//                ble.setMTU(modelDevice.getBleAddress(), 128, new BleMtuCallback<BleModelDevice>(){
-//                    @Override
-//                    public void onMtuChanged(final BleModelDevice device, int mtu, int status) {
-//                        super.onMtuChanged(device, mtu, status);
-
-//                    }
-//                });
-
             }
             super.onServicesDiscovered(modelDevice, gatt);
 
@@ -426,22 +422,29 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
                                         errorMessage="SUCCESS";
                                         ble.disconnect(device);
-                                        if (mILinkSmartConfigListener!=null){
-                                            mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, device.getMacAddress());
-                                        }
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+                                        JSONObject jsonObject=new JSONObject();
+                                        jsonObject.put("mac",bleModelDevice.getMacAddress());
+                                        jsonObject.put("deviceId",deviceName);
+                                        if (mILinkSmartConfigListener!=null){
+//                                            Utils.getResult(errorCode,errorMessage,jsonObject);
+                                            mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
+                                        }
                                     } else if (TextUtils.equals("FF", valueCode)||TextUtils.equals("ff", valueCode)) {
                                         ble.disconnect(device);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7255_message);
                                         errorCode= IBluetooth.Constant.ERROR_PASSORD_CODE;
+//                                        bluetoothDeviceStore.getDeviceMap().get()
+                                        JSONObject jsonObject=new JSONObject();
+//                                        jsonObject.put("mac",bleModelDevice.getMacAddress());
+//                                        jsonObject.put("deviceId",deviceName);
                                         if (mILinkSmartConfigListener!=null){
-                                            mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, device.getMacAddress());
+//                                            Utils.getResult(errorCode,errorMessage,jsonObject);
+                                            mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
                                         }
                                     }
                                     BleLog.e("message", errorMessage);
-
-
                                 }
                             }else if (code==6){
                                 String valueHex=(String)decode.get("value");
@@ -454,6 +457,21 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                 BleEntityData bleEntityData=new BleEntityData(valueHex,bytesValue,len);
                                 if (smartNotifyListener!=null){
                                     smartNotifyListener.onSmartNotifyListener(1,"success",bleEntityData);
+                                }
+                            }else if (code==8){
+                                isOpen=false;
+                                if (myGetDeviceInfoThread!=null){
+                                    myGetDeviceInfoThread.interrupt();
+                                    myGetDeviceInfoThread=null;
+                                }
+                                byte [] bytesValue=null;
+                                int len=0;
+                                if (decode.containsKey("byte")){
+                                    bytesValue=(byte[]) decode.get("byte");
+                                    len=bytesValue.length;
+                                    if (bytesValue!=null){
+                                        deviceName = new String(bytesValue, "UTF-8");
+                                    }
                                 }
                             }
                         }
@@ -497,6 +515,12 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     public void onDisConnect(String macCode) throws Exception {
         mILinkSmartConfigListener=null;
         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
+        isOpen=false;
+        if (myGetDeviceInfoThread!=null){
+            myGetDeviceInfoThread.interrupt();
+            myGetDeviceInfoThread=null;
+
+        }
         smartNotifyListener=null;
         if (ble != null) {
             try {
@@ -508,7 +532,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                         BleModelDevice bleDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
                         if (bleDevice != null) {
                             ble.disconnect(bleDevice);
-//                            ble.refreshDeviceCache(bleDevice.getBleAddress());
                         }
                     }
                 }
@@ -527,10 +550,37 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     }
 
+
+
     @Override
     public void onWriteSuccess(BleModelDevice device, BluetoothGattCharacteristic characteristic) {
 
     }
 
+
+    class  MyGetDeviceInfoThread extends Thread{
+        BleModelDevice bleModelDevice=null;
+        public void setBleModelDevice(BleModelDevice bleModelDevice) {
+            this.bleModelDevice = bleModelDevice;
+        }
+        @Override
+        public void run() {
+            super.run();
+            deviceName="";
+            while (isOpen){
+                try {
+                    BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
+                    byte[] bytes = bluetoothProtocol.getDeviceInfo();
+                    ble.writeByUuid(bleModelDevice, bytes,
+                            Ble.options().getUuidService(),
+                            Ble.options().getUuidWriteCha(),
+                            BlueISmartImpl.this);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+
+                }
+            }
+        }
+    }
 
 }

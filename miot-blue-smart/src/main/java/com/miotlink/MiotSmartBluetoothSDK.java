@@ -41,6 +41,10 @@ public class MiotSmartBluetoothSDK {
 
     private ISmart iSmart=null;
 
+    public void setDeviceInfo(boolean isOpen){
+
+    }
+
     /**
      * 打印数据
      * @param isDebug
