@@ -7,6 +7,9 @@ import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -55,6 +58,18 @@ public class Utils {
     public static boolean isPermission(Context context, String permission) {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
                 || ContextCompat.checkSelfPermission(context, permission) == PERMISSION_GRANTED;
+    }
+
+    public static String getResult(int errorCode,String errorMessage,Object data){
+        JSONObject jsonObject=new JSONObject();
+        try {
+            jsonObject.put("errorCode", errorCode);
+            jsonObject.put("errorMessage", errorMessage);
+            jsonObject.put("data", data);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject.toString();
     }
 
 }
