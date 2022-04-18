@@ -43,6 +43,9 @@ public class MiotSmartBluetoothSDK {
 
     public void setDeviceInfo(boolean isOpen){
 
+        if (iSmart!=null){
+            iSmart.setDeviceInfo(isOpen);
+        }
     }
 
     /**
