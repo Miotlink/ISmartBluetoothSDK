@@ -8,8 +8,8 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.0.0"
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
-        classpath 'com.github.panpf.bintray-publish:bintray-publish:1.0.0'
+//        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
+//        classpath 'com.github.panpf.bintray-publish:bintray-publish:1.0.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -19,6 +19,28 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
         options.addStringOption('encoding', 'UTF-8')
     }
+}
+
+allprojects {
+//    repositories {
+//        maven {
+//            url 'https://maven.aliyun.com/repository/public'
+//        }
+//        maven {
+//            credentials {
+//                username '5f0c1af14c4e70fdbf9e26c6'
+//                password 'd7I)7(NdDOcw'
+//            }
+//            url 'https://packages.aliyun.com/maven/repository/2016367-release-GHmELg/'
+//        }
+//        maven {
+//            credentials {
+//                username '5f0c1af14c4e70fdbf9e26c6'
+//                password 'd7I)7(NdDOcw'
+//            }
+//            url 'https://packages.aliyun.com/maven/repository/2016367-snapshot-yufnfx/'
+//        }
+//    }
 }
 allprojects {
     repositories {
