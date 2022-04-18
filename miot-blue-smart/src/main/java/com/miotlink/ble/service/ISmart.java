@@ -19,6 +19,8 @@ public interface ISmart {
 
     public int checkAuthority();
 
+    public void setDeviceInfo(boolean isOpen);
+
     public void setServiceUUID(String serviceUuId,String readUuid,String writeUuid)throws Exception;
 
     /**
