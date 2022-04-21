@@ -1,5 +1,7 @@
 package com.miotlink.protocol;
 
+import com.miotlink.ble.BleLog;
+import com.miotlink.ble.utils.ByteUtils;
 import com.miotlink.utils.BlueTools;
 import com.miotlink.utils.BluetoothConsts;
 
@@ -52,6 +54,7 @@ class BluetoothMessage {
 
 
     public byte[] getmBytes() {
+        BleLog.e("UART", ByteUtils.bytes2HexStr(mBuffer));
         return mBuffer;
     }
 

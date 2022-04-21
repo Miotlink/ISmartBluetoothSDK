@@ -32,6 +32,7 @@ import com.miotlink.ble.model.BleModelDevice;
 import com.miotlink.ble.model.BluetoothDeviceStore;
 import com.miotlink.ble.model.ScanRecord;
 import com.miotlink.ble.service.ISmart;
+import com.miotlink.ble.utils.ByteUtils;
 import com.miotlink.ble.utils.Utils;
 import com.miotlink.ble.utils.UuidUtils;
 import com.miotlink.utils.IBluetooth;
@@ -354,7 +355,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     myGetDeviceInfoThread=null;
                                 }
                                 myGetDeviceInfoThread=new MyGetDeviceInfoThread();
-                                myGetDeviceInfoThread.setBleModelDevice(device);
+                                myGetDeviceInfoThread.setBleModelDevice(modelDevice);
                                 myGetDeviceInfoThread.start();
                                 BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
                                 byte[] bytes = bluetoothProtocol.smartConfigEncode(ssid, password);
@@ -559,9 +560,9 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
 
     class  MyGetDeviceInfoThread extends Thread{
-        BleModelDevice bleModelDevice=null;
+        BleModelDevice modelDevice=null;
         public void setBleModelDevice(BleModelDevice bleModelDevice) {
-            this.bleModelDevice = bleModelDevice;
+            this.modelDevice = bleModelDevice;
         }
         @Override
         public void run() {
@@ -569,13 +570,14 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             deviceName="";
             while (isOpen){
                 try {
+                    Thread.sleep(1000);
                     BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
                     byte[] bytes = bluetoothProtocol.getDeviceInfo();
-                    ble.writeByUuid(bleModelDevice, bytes,
+                    ble.writeByUuid(modelDevice, bytes,
                             Ble.options().getUuidService(),
                             Ble.options().getUuidWriteCha(),
                             BlueISmartImpl.this);
-                    Thread.sleep(1000);
+
                 } catch (InterruptedException e) {
 
                 }
