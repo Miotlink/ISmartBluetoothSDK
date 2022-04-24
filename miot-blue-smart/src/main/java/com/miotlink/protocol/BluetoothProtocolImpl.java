@@ -60,7 +60,7 @@ import java.util.Map;
      public byte[] getDeviceInfo() {
          BluetoothMessage bluetoothMessage=new BluetoothMessage();
          BluetoothMessage.BlueMessageBody blueMessageBody = bluetoothMessage.getBlueMessageBody(7, 1);
-         blueMessageBody.addPropertys(1, 0x01);
+         blueMessageBody.addPropertys(1, new byte[]{0x01});
          bluetoothMessage.encode();
          return bluetoothMessage.getmBytes();
      }
