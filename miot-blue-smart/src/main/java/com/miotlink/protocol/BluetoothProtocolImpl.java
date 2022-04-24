@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
- class BluetoothProtocolImpl implements BluetoothProtocol {
+ public class BluetoothProtocolImpl implements BluetoothProtocol {
 
 
     @Override
