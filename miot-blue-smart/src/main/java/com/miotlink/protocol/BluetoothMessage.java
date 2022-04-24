@@ -9,14 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
 class BluetoothMessage {
 
 
     private byte[] bytes=new byte[64];
 
-    private byte[] start_head={BluetoothConsts.START_HEAD_1,BluetoothConsts.START_HEAD_2};
-    private byte[] start_end={BluetoothConsts.END_1,BluetoothConsts.END_2};
+    private byte[] start_head={BluetoothConsts.START_HEAD_1, BluetoothConsts.START_HEAD_2};
+    private byte[] start_end={BluetoothConsts.END_1, BluetoothConsts.END_2};
 
     private int length=2;
 
@@ -66,7 +65,7 @@ class BluetoothMessage {
     public BlueMessageBody decode(byte[] bytes){
         try {
             this.bytes=bytes;
-            if (bytes==null||bytes[0]!=BluetoothConsts.START_HEAD_1&&bytes[1]!=BluetoothConsts.START_HEAD_2){
+            if (bytes==null||bytes[0]!= BluetoothConsts.START_HEAD_1&&bytes[1]!= BluetoothConsts.START_HEAD_2){
                 return null;
             }
             if (bytes.length<8){
@@ -127,6 +126,9 @@ class BluetoothMessage {
             }else if (len>0 && o instanceof Byte){
                 byte [] bs=(byte[]) o;
                 System.arraycopy(bs,0,bytes, length, bs.length);
+            }else if (len>0 && o instanceof byte[]){
+                byte [] bs=(byte[]) o;
+                System.arraycopy(bs,0,bytes, length, bs.length);
             }
             this.length+=len;
 
@@ -136,8 +138,8 @@ class BluetoothMessage {
             byte[] bytesMsg=new byte[length];
             System.arraycopy(bytes, 0, bytesMsg, 0, length);
             String crcValue = CRC16Utils.getCRCValue(bytesMsg);
-            bytes[length+1]=(byte)CRC16Utils.getCrcMaxLen(crcValue);
-            bytes[length]=(byte)CRC16Utils.getCrcMinLen(crcValue);
+            bytes[length+1]=(byte) CRC16Utils.getCrcMaxLen(crcValue);
+            bytes[length]=(byte) CRC16Utils.getCrcMinLen(crcValue);
             length+=2;
 
         }
