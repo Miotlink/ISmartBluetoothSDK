@@ -2,6 +2,8 @@ package com.miotlink.ble.model;
 
 
 
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,9 +23,21 @@ public class BluetoothDeviceStore {
         if (device == null) {
             return;
         }
-        if (!mDeviceMap.containsKey(device.getBleAddress())) {
-            mDeviceMap.put(device.getMacAddress(), device);
+        if (!TextUtils.isEmpty(device.getMacAddress())
+                &&!TextUtils.isEmpty(device.getBleAddress())
+                &&TextUtils.equals(device.getMacAddress(),device.getBleAddress())){
+            if (!mDeviceMap.containsKey(device.getMacAddress())) {
+                mDeviceMap.put(device.getMacAddress(), device);
+            }
+        }else {
+            if (!mDeviceMap.containsKey(device.getMacAddress())) {
+                mDeviceMap.put(device.getMacAddress(), device);
+            }
+            if (!mDeviceMap.containsKey(device.getBleAddress())) {
+                mDeviceMap.put(device.getBleAddress(), device);
+            }
         }
+
     }
 
     public void removeDevice(BleModelDevice device) {

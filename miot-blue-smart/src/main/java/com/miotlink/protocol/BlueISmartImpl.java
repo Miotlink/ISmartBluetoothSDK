@@ -61,7 +61,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     private boolean isOpen;
 
-    private BleModelDevice bleModelDevice=null;
+//    private BleModelDevice mDevice=null;
 
     private MyGetDeviceInfoThread myGetDeviceInfoThread=null;
 
@@ -243,7 +243,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         }
         if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
             BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
-            this.bleModelDevice=bleModelDevice;
             ble.connect(bleModelDevice, new BleConnectCallback<BleModelDevice>() {
                 @Override
                 public void onConnectionChanged(BleModelDevice device) {
@@ -308,8 +307,9 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         this.mILinkSmartConfigListener = mILinkSmartConfigListener;
         if (bluetoothDeviceStore.getDeviceMap().containsKey(macCode)) {
             BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(macCode);
-            this.bleModelDevice=bleModelDevice;
-            ble.connect(bleModelDevice, bleModelDeviceCallback);
+            if (bleModelDevice!=null){
+                ble.connect(bleModelDevice, bleModelDeviceCallback);
+            }
         }
     }
 
@@ -422,10 +422,17 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         ble.disconnect(device);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         JSONObject jsonObject=new JSONObject();
-                                        jsonObject.put("mac",bleModelDevice.getMacAddress());
+                                        String deviceId="";
+                                        boolean b = bluetoothDeviceStore.getDeviceMap().containsKey(device.getMacAddress());
+                                        if (b){
+                                            BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(device.getMacAddress());
+                                            deviceId=bleModelDevice.getMacAddress();
+                                        }else {
+                                            deviceId=device.getBleAddress();
+                                        }
+                                        jsonObject.put("mac",deviceId);
                                         jsonObject.put("deviceId",deviceName);
                                         if (mILinkSmartConfigListener!=null){
-//                                            Utils.getResult(errorCode,errorMessage,jsonObject);
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
                                         }
                                     } else if (TextUtils.equals("FF", valueCode)||TextUtils.equals("ff", valueCode)) {
