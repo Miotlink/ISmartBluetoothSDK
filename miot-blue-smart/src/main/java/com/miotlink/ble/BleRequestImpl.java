@@ -128,6 +128,12 @@ public final class BleRequestImpl<T extends BleDevice> {
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status){
             if (gatt != null && gatt.getDevice() != null) {
                 BleLog.d(TAG, "onMtuChanged mtu=" + mtu + ",status=" + status);
+
+
+
+                if (mtuWrapperCallback==null){
+                    mtuWrapperCallback = Rproxy.getRequest(MtuRequest.class);
+                }
                 if (null != mtuWrapperCallback){
                     if (BluetoothGatt.GATT_SUCCESS==status) {
                         mtuWrapperCallback.onMtuChanged(getBleDeviceInternal(gatt.getDevice().getAddress()), mtu, status);
@@ -155,6 +161,10 @@ public final class BleRequestImpl<T extends BleDevice> {
             if (gatt == null || gatt.getDevice() == null)return;
             BleLog.d(TAG, "onCharacteristicRead:" + status);
             T bleDevice = getBleDeviceInternal(gatt.getDevice().getAddress());
+            if (readWrapperCallback==null){
+                readRssiWrapperCallback = Rproxy.getRequest(ReadRssiRequest.class);
+
+            }
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (null != readWrapperCallback){
                     readWrapperCallback.onReadSuccess(bleDevice, characteristic);
@@ -171,6 +181,10 @@ public final class BleRequestImpl<T extends BleDevice> {
                                           BluetoothGattCharacteristic characteristic, int status) {
             if (gatt == null || gatt.getDevice() == null)return;
             BleLog.d(TAG, gatt.getDevice().getAddress() + "-----write success----- status: " + status);
+            if (writeWrapperCallback==null){
+                writeWrapperCallback = Rproxy.getRequest(WriteRequest.class);
+
+            }
             synchronized (locker) {
                 T bleDevice = getBleDeviceInternal(gatt.getDevice().getAddress());
                 if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -197,6 +211,10 @@ public final class BleRequestImpl<T extends BleDevice> {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
+            if (notifyWrapperCallback==null){
+//                this.descWrapperCallback = Rproxy.getRequest(DescriptorRequest.class);
+                notifyWrapperCallback=Rproxy.getRequest(NotifyRequest.class);
+            }
             synchronized (locker) {
                 if (gatt == null || gatt.getDevice() == null)return;
                 BleLog.d(TAG, gatt.getDevice().getAddress() + " -- onCharacteristicChanged: "
@@ -214,6 +232,9 @@ public final class BleRequestImpl<T extends BleDevice> {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt,
                                       BluetoothGattDescriptor descriptor, int status) {
+            if (descWrapperCallback==null){
+                descWrapperCallback= Rproxy.getRequest(DescriptorRequest.class);
+            }
             if (gatt == null || gatt.getDevice() == null)return;
             UUID uuid = descriptor.getCharacteristic().getUuid();
             BleLog.d(TAG, "write descriptor uuid:" + uuid);
@@ -249,6 +270,9 @@ public final class BleRequestImpl<T extends BleDevice> {
         @Override
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorRead(gatt, descriptor, status);
+            if (descWrapperCallback==null){
+                descWrapperCallback= Rproxy.getRequest(DescriptorRequest.class);
+            }
             if (gatt == null || gatt.getDevice() == null)return;
             UUID uuid = descriptor.getCharacteristic().getUuid();
             BleLog.d(TAG, "read descriptor uuid:" + uuid);
@@ -268,6 +292,9 @@ public final class BleRequestImpl<T extends BleDevice> {
         public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
             BleLog.d(TAG, "read remoteRssi, rssi: "+rssi);
             if (gatt == null || gatt.getDevice() == null)return;
+            if (readRssiWrapperCallback==null){
+                readRssiWrapperCallback=Rproxy.getRequest(ReadRssiRequest.class);
+            }
             if (null != readRssiWrapperCallback){
                 readRssiWrapperCallback.onReadRssiSuccess(getBleDeviceInternal(gatt.getDevice().getAddress()), rssi);
             }
@@ -503,9 +530,11 @@ public final class BleRequestImpl<T extends BleDevice> {
                 return result;
             }
         }else {
-            if (null != writeWrapperCallback){
-                writeWrapperCallback.onWriteFailed(getBleDeviceInternal(address), BleStates.NotInitUuid);
+            if (null == writeWrapperCallback){
+                this.writeWrapperCallback = Rproxy.getRequest(WriteRequest.class);
             }
+            writeWrapperCallback.onWriteFailed(getBleDeviceInternal(address), BleStates.NotInitUuid);
+
         }
         return false;
     }
@@ -555,9 +584,11 @@ public final class BleRequestImpl<T extends BleDevice> {
                 return result;
             }
         }else {
-            if (null != readWrapperCallback){
-                readWrapperCallback.onReadFailed(getBleDeviceInternal(address), BleStates.NotInitUuid);
+            if (null == readWrapperCallback){
+                this.readWrapperCallback = Rproxy.getRequest(ReadRequest.class);
             }
+            readWrapperCallback.onReadFailed(getBleDeviceInternal(address), BleStates.NotInitUuid);
+
         }
         return false;
     }
@@ -631,9 +662,11 @@ public final class BleRequestImpl<T extends BleDevice> {
     private void setCharacteristicNotificationInternal(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, boolean enabled){
         if (characteristic == null){
             BleLog.e(TAG, "characteristic is null");
-            if (notifyWrapperCallback != null){
-                notifyWrapperCallback.onNotifyFailed(getBleDeviceInternal(gatt.getDevice().getAddress()), BleStates.CharaUuidNull);
+            if (notifyWrapperCallback == null){
+                this.notifyWrapperCallback = Rproxy.getRequest(NotifyRequest.class);
             }
+            notifyWrapperCallback.onNotifyFailed(getBleDeviceInternal(gatt.getDevice().getAddress()), BleStates.CharaUuidNull);
+
             return;
         }
         gatt.setCharacteristicNotification(characteristic, enabled);
@@ -676,6 +709,10 @@ public final class BleRequestImpl<T extends BleDevice> {
             disconnect(device.getAddress());
             return;
         }
+        if (connectWrapperCallback==null){
+            this.connectWrapperCallback = Rproxy.getRequest(ConnectRequest.class);
+        }
+
         if (connectWrapperCallback != null) {
             T bleDevice = getBleDeviceInternal(device.getAddress());
             connectWrapperCallback.onServicesDiscovered(bleDevice, gatt);
@@ -734,6 +771,10 @@ public final class BleRequestImpl<T extends BleDevice> {
                             ".setUuidService(替换成自己的service_uuid)必选\n" +
                             ".setUuidWriteCha(替换成自己的write_uuid)写入必选\n" +
                             ".setUuidReadCha(替换成自己的read_uuid)读取必选");
+        }
+
+        if (connectWrapperCallback==null){
+            this.connectWrapperCallback = Rproxy.getRequest(ConnectRequest.class);
         }
         if (null != connectWrapperCallback){
             connectWrapperCallback.onReady(getBleDeviceInternal(device.getAddress()));
