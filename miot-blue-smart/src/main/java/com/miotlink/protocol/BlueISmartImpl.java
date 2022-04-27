@@ -18,6 +18,7 @@ import com.miotlink.ble.callback.BleNotifyCallback;
 import com.miotlink.ble.callback.BleScanCallback;
 import com.miotlink.ble.callback.BleStatusCallback;
 import com.miotlink.ble.callback.BleWriteCallback;
+import com.miotlink.ble.callback.wrapper.ConnectWrapperCallback;
 import com.miotlink.ble.listener.ILinkBlueScanCallBack;
 import com.miotlink.ble.listener.ILinkConnectCallback;
 import com.miotlink.ble.listener.ILinkSmartConfigListener;
@@ -312,7 +313,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             }
         }
     }
-
+//    ConnectWrapperCallback
     BleConnectCallback<BleModelDevice> bleModelDeviceCallback = new BleConnectCallback<BleModelDevice>() {
         @Override
         public void onConnectionChanged(BleModelDevice device) {

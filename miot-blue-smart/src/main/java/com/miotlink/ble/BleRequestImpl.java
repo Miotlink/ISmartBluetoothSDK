@@ -343,53 +343,65 @@ public final class BleRequestImpl<T extends BleDevice> {
      * @return Connection result
      */
     public boolean connect(final T bleDevice) {
-        String address = bleDevice.getBleAddress();
-        if (connectedAddressList.contains(bleDevice.getBleAddress()) && bleDevice.isConnected()) {
-            BleLog.e(TAG, "this is device already connected.");
-            connectWrapperCallback.onConnectFailed(bleDevice, BleStates.ConnectedAlready);
-            return false;
-        }
-        if (bluetoothAdapter == null) {
-            BleLog.e(TAG, "bluetoothAdapter not available");
-            connectWrapperCallback.onConnectFailed(bleDevice, BleStates.NotAvailable);
-            return false;
-        }
-        // getRemoteDevice(address) will throw an exception if the device address is invalid,
-        // so it's necessary to check the address
-        if (!BluetoothAdapter.checkBluetoothAddress(address)) {
-            BleLog.e(TAG, "the device address is invalid");
-            connectWrapperCallback.onConnectFailed(bleDevice, BleStates.InvalidAddress);
-            return false;
-        }
-        // Previously connected device. Try to reconnect. ()
-        final BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
-        if (device == null) {
-            BleLog.e(TAG, "no device");
-            connectWrapperCallback.onConnectFailed(bleDevice, BleStates.DeviceNull);
-            return false;
-        }
-        //10s after the timeout prompt
-        HandlerCompat.postDelayed(handler, new Runnable() {
-            @Override
-            public void run() {
-                connectWrapperCallback.onConnectFailed(bleDevice, BleStates.ConnectTimeOut);
-                close(device.getAddress());
+        try {
+            String address = bleDevice.getBleAddress();
+            if (connectWrapperCallback==null){
+                this.connectWrapperCallback = Rproxy.getRequest(ConnectRequest.class);
             }
-        }, device.getAddress(), options.connectTimeout);
-        bleDevice.setConnectionState(BleDevice.CONNECTING);
-        bleDevice.setBleName(device.getName());
-        connectWrapperCallback.onConnectionChanged(bleDevice);
-        // We want to directly connect to the device, so we are setting the autoConnect parameter to false
-        BluetoothGatt bluetoothGatt;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL) {
-            bluetoothGatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
-        } else {
-            bluetoothGatt = device.connectGatt(context, false, gattCallback);
-        }
-        if (bluetoothGatt != null) {
-            gattHashMap.put(address, bluetoothGatt);
-            BleLog.d(TAG, "Trying to create a new connection.");
-            return true;
+            if (connectWrapperCallback==null){
+                BleLog.e(TAG, "connectWrapperCallback is null");
+
+                return false;
+            }
+            if (connectedAddressList.contains(bleDevice.getBleAddress()) && bleDevice.isConnected()) {
+                BleLog.e(TAG, "this is device already connected.");
+                connectWrapperCallback.onConnectFailed(bleDevice, BleStates.ConnectedAlready);
+                return false;
+            }
+            if (bluetoothAdapter == null) {
+                BleLog.e(TAG, "bluetoothAdapter not available");
+                connectWrapperCallback.onConnectFailed(bleDevice, BleStates.NotAvailable);
+                return false;
+            }
+            // getRemoteDevice(address) will throw an exception if the device address is invalid,
+            // so it's necessary to check the address
+            if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+                BleLog.e(TAG, "the device address is invalid");
+                connectWrapperCallback.onConnectFailed(bleDevice, BleStates.InvalidAddress);
+                return false;
+            }
+            // Previously connected device. Try to reconnect. ()
+            final BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+            if (device == null) {
+                BleLog.e(TAG, "no device");
+                connectWrapperCallback.onConnectFailed(bleDevice, BleStates.DeviceNull);
+                return false;
+            }
+            //10s after the timeout prompt
+            HandlerCompat.postDelayed(handler, new Runnable() {
+                @Override
+                public void run() {
+                    connectWrapperCallback.onConnectFailed(bleDevice, BleStates.ConnectTimeOut);
+                    close(device.getAddress());
+                }
+            }, device.getAddress(), options.connectTimeout);
+            bleDevice.setConnectionState(BleDevice.CONNECTING);
+            bleDevice.setBleName(device.getName());
+            connectWrapperCallback.onConnectionChanged(bleDevice);
+            // We want to directly connect to the device, so we are setting the autoConnect parameter to false
+            BluetoothGatt bluetoothGatt;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL) {
+                bluetoothGatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
+            } else {
+                bluetoothGatt = device.connectGatt(context, false, gattCallback);
+            }
+            if (bluetoothGatt != null) {
+                gattHashMap.put(address, bluetoothGatt);
+                BleLog.d(TAG, "Trying to create a new connection.");
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
