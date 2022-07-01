@@ -45,7 +45,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     private Ble<BleModelDevice> ble = null;
     private SmartListener mSmartListener = null;
     private Context mContext = null;
-    public static boolean Debug = false;
+    public static boolean Debug = true;
     private BluetoothDeviceStore bluetoothDeviceStore = new BluetoothDeviceStore();
 
 
