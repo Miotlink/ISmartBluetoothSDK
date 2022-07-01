@@ -313,7 +313,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             }
         }
     }
-//    ConnectWrapperCallback
     BleConnectCallback<BleModelDevice> bleModelDeviceCallback = new BleConnectCallback<BleModelDevice>() {
         @Override
         public void onConnectionChanged(BleModelDevice device) {
@@ -362,7 +361,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         public void onWriteSuccess(BleModelDevice device, BluetoothGattCharacteristic characteristic) {
                                             BleLog.e("onWriteSuccess", "onWriteSuccess");
                                         }
-
                                         @Override
                                         public void onWriteFailed(BleModelDevice device, int failedCode) {
                                             super.onWriteFailed(device, failedCode);
@@ -441,16 +439,12 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7255_message);
                                         errorCode= IBluetooth.Constant.ERROR_PASSORD_CODE;
-//                                        bluetoothDeviceStore.getDeviceMap().get()
                                         JSONObject jsonObject=new JSONObject();
-//                                        jsonObject.put("mac",bleModelDevice.getMacAddress());
-//                                        jsonObject.put("deviceId",deviceName);
                                         if (mILinkSmartConfigListener!=null){
-//                                            Utils.getResult(errorCode,errorMessage,jsonObject);
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
                                         }
                                     }
-                                    BleLog.e("message", errorMessage);
+
                                 }
                             }else if (code==6){
                                 String valueHex=(String)decode.get("value");
