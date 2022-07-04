@@ -418,7 +418,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     } else if (TextUtils.equals("0F", valueCode)||TextUtils.equals("0f", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
                                         errorMessage="SUCCESS";
-                                        ble.disconnect(device);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         JSONObject jsonObject=new JSONObject();
                                         String deviceId="";
@@ -434,8 +433,11 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         if (mILinkSmartConfigListener!=null){
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
                                         }
-                                    } else if (TextUtils.equals("FF", valueCode)||TextUtils.equals("ff", valueCode)) {
+                                        if (ble==null){
+                                            ble=Ble.getInstance();
+                                        }
                                         ble.disconnect(device);
+                                    } else if (TextUtils.equals("FF", valueCode)||TextUtils.equals("ff", valueCode)) {
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7255_message);
                                         errorCode= IBluetooth.Constant.ERROR_PASSORD_CODE;
@@ -443,6 +445,10 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         if (mILinkSmartConfigListener!=null){
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
                                         }
+                                        if (ble==null){
+                                            ble=Ble.getInstance();
+                                        }
+                                        ble.disconnect(device);
                                     }
 
                                 }
