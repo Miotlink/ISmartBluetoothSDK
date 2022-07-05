@@ -317,9 +317,13 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         @Override
         public void onConnectionChanged(BleModelDevice device) {
             if (device.isConnected()){
+                BleLog.e("onConnectionChanged","蓝牙已连接");
             }else if (device.isDisconnected()){
+                BleLog.e("onConnectionChanged","蓝牙断开连接");
                 errorCode= IBluetooth.Constant.ERROR_DISCONNECT_CODE;
                 errorMessage= mContext.getResources().getString(R.string.ble_device_error_7010_message);
+            }else if (device.isConnecting()){
+                BleLog.e("onConnectionChanged","蓝牙连接中");
             }
         }
 
@@ -381,6 +385,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
         @Override
         public void onConnectFailed(BleModelDevice device, int errorCode) {
             super.onConnectFailed(device, errorCode);
+            BleLog.e("onConnectFailed",errorCode+"");
         }
 
 
@@ -407,17 +412,22 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                 if (!TextUtils.isEmpty(valueCode)) {
                                     if (TextUtils.equals("00", valueCode)) {
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7001_message);
+                                        BleLog.e("onChanged",errorMessage);
                                     } else if (TextUtils.equals("01", valueCode)) {
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7001_message);
+                                        BleLog.e("onChanged",errorMessage);
                                     } else if (TextUtils.equals("02", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_CONNECT_CODE;
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7002_message);
+                                        BleLog.e("onChanged",errorMessage);
                                     } else if (TextUtils.equals("03", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_PLATFORM_CODE;
                                         errorMessage = mContext.getResources().getString(R.string.ble_device_error_7003_message);
+                                        BleLog.e("onChanged",errorMessage);
                                     } else if (TextUtils.equals("0F", valueCode)||TextUtils.equals("0f", valueCode)) {
                                         errorCode= IBluetooth.Constant.ERROR_SUCCESS_CODE;
                                         errorMessage="SUCCESS";
+                                        BleLog.e("onChanged",errorMessage);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         JSONObject jsonObject=new JSONObject();
                                         String deviceId="";
@@ -465,11 +475,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     smartNotifyListener.onSmartNotifyListener(1,"success",bleEntityData);
                                 }
                             }else if (code==8){
-                                isOpen=false;
-                                if (myGetDeviceInfoThread!=null){
-                                    myGetDeviceInfoThread.interrupt();
-                                    myGetDeviceInfoThread=null;
-                                }
                                 byte [] bytesValue=null;
                                 int len=0;
                                 if (decode.containsKey("byte")){
@@ -477,7 +482,13 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     len=bytesValue.length;
                                     if (bytesValue!=null){
                                         deviceName = new String(bytesValue, "UTF-8");
+                                        BleLog.e("deviceName",deviceName);
                                     }
+                                }
+                                isOpen=false;
+                                if (myGetDeviceInfoThread!=null){
+                                    myGetDeviceInfoThread.interrupt();
+                                    myGetDeviceInfoThread=null;
                                 }
                             }
                         }
@@ -519,6 +530,8 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     @Override
     public void onDisConnect(String macCode) throws Exception {
+        BleLog.e("onDisConnect", macCode+"**************");
+
         mILinkSmartConfigListener=null;
         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
         isOpen=false;
@@ -550,6 +563,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     @Override
     public void onDestory() throws Exception {
+        BleLog.e("onDestory","-----------------------------");
         if (ble != null) {
             ble.released();
         }
