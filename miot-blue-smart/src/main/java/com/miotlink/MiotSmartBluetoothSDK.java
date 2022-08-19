@@ -106,18 +106,20 @@ public class MiotSmartBluetoothSDK {
      * @param scanCallBack
      */
     public void startScan(final ILinkBlueScanCallBack scanCallBack) {
-        try {
-            if (iSmart==null){
-                iSmart=new BlueISmartImpl();
+        if (iSmart==null){
+            iSmart=new BlueISmartImpl();
+        }
+        new Thread(new Runnable(){
+            @Override
+            public void run() {
                 try {
                     iSmart.onScan(scanCallBack);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }).start();
+
     }
 
     private String macAddress="";
