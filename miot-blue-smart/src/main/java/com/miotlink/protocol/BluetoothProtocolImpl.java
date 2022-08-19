@@ -18,9 +18,13 @@ public class BluetoothProtocolImpl implements BluetoothProtocol {
        if (blueMessageBody!=null){
            if (!TextUtils.isEmpty(ssid)){
                blueMessageBody.addPropertys(ssid.getBytes().length, ssid);
+           }else {
+               blueMessageBody.addPropertys(0, 0x00);
            }
            if (!TextUtils.isEmpty(password)){
                blueMessageBody.addPropertys(password.getBytes().length, password);
+           }else {
+               blueMessageBody.addPropertys(0, 0x00);
            }
            bluetoothMessage.encode();
            return bluetoothMessage.getmBytes();
