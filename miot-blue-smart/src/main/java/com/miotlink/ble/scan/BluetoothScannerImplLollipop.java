@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 import android.os.ParcelUuid;
+import android.text.TextUtils;
 
 import com.miotlink.ble.Ble;
 import com.miotlink.ble.BleLog;
@@ -52,7 +53,9 @@ class BluetoothScannerImplLollipop extends BleScannerCompat {
     private final ScanCallback scannerCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            BleLog.i(TAG, "onScanResult: "+result.getScanRecord().getDeviceName());
+            if (!TextUtils.isEmpty(result.getScanRecord().getDeviceName())){
+                BleLog.i(TAG, "onScanResult: "+ result.getScanRecord().getDeviceName());
+            }
             BluetoothDevice device = result.getDevice();
             byte[] scanRecord = result.getScanRecord().getBytes();
             if (scanWrapperCallback != null){
@@ -84,8 +87,6 @@ class BluetoothScannerImplLollipop extends BleScannerCompat {
 
     private void setScanSettings() {
         boolean background = Utils.isBackground(Ble.getInstance().getContext());
-        BleLog.d(TAG, "currently in the background:>>>>>"+background);
-
         ScanFilter filter = Ble.options().getScanFilter();
         if (filter != null){
             filters.add(filter);

@@ -479,6 +479,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     smartNotifyListener.onSmartNotifyListener(1,"success",bleEntityData);
                                 }
                             }else if (code==8){
+                                BleLog.e(TAG,"-----------------DeviceName SUCCESS------------------");
                                 byte [] bytesValue=null;
                                 int len=0;
                                 if (decode.containsKey("byte")){
@@ -592,7 +593,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             deviceName="";
             while (isOpen){
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(2000);
                     BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
                     byte[] bytes = bluetoothProtocol.getDeviceInfo();
                     Log.e("UART", "DeviceName"+HexUtil.encodeHexStr(bytes));
@@ -601,7 +602,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                             Ble.options().getUuidWriteCha(),
                             BlueISmartImpl.this);
 
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
 
                 }
             }
