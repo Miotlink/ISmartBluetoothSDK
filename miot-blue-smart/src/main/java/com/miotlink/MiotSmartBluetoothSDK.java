@@ -107,22 +107,14 @@ public class MiotSmartBluetoothSDK {
      */
     public void startScan(final ILinkBlueScanCallBack scanCallBack) {
         try {
-
-            new Thread(new Runnable(){
-
-                @Override
-                public void run() {
-                    if (iSmart==null){
-                        iSmart=new BlueISmartImpl();
-                        try {
-                            iSmart.onScan(scanCallBack);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
+            if (iSmart==null){
+                iSmart=new BlueISmartImpl();
+                try {
+                    iSmart.onScan(scanCallBack);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }).start();
-
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
