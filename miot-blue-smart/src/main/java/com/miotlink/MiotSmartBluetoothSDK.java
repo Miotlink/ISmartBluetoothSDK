@@ -105,12 +105,24 @@ public class MiotSmartBluetoothSDK {
      * 扫描蓝牙设备
      * @param scanCallBack
      */
-    public void startScan(ILinkBlueScanCallBack scanCallBack) {
+    public void startScan(final ILinkBlueScanCallBack scanCallBack) {
         try {
-            if (iSmart==null){
-                iSmart=new BlueISmartImpl();
-            }
-            iSmart.onScan(scanCallBack);
+
+            new Thread(new Runnable(){
+
+                @Override
+                public void run() {
+                    if (iSmart==null){
+                        iSmart=new BlueISmartImpl();
+                        try {
+                            iSmart.onScan(scanCallBack);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

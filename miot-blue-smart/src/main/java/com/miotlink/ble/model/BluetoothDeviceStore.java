@@ -4,6 +4,8 @@ package com.miotlink.ble.model;
 
 import android.text.TextUtils;
 
+import com.miotlink.utils.HexUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,16 +25,13 @@ public class BluetoothDeviceStore {
         if (device == null) {
             return;
         }
-        if (!TextUtils.isEmpty(device.getMacAddress())
-                &&!TextUtils.isEmpty(device.getBleAddress())
-                &&TextUtils.equals(device.getMacAddress(),device.getBleAddress())){
+        if (!TextUtils.isEmpty(device.getMacAddress())){
             if (!mDeviceMap.containsKey(device.getMacAddress())) {
                 mDeviceMap.put(device.getMacAddress(), device);
             }
-        }else {
-            if (!mDeviceMap.containsKey(device.getMacAddress())) {
-                mDeviceMap.put(device.getMacAddress(), device);
-            }
+        }else if (!TextUtils.isEmpty(device.getBleName())
+                &&device.getBleName().startsWith("Hi-Huawei-Mars")||
+                HexUtil.encodeHexStr(device.getScanRecord().getBytes()==null?new byte[0]:device.getScanRecord().getBytes()).contains("6667")){
             if (!mDeviceMap.containsKey(device.getBleAddress())) {
                 mDeviceMap.put(device.getBleAddress(), device);
             }

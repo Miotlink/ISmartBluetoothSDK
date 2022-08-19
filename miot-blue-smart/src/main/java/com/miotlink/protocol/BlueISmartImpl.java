@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.bluetooth.sdk.R;
 import com.miotlink.ble.Ble;
@@ -41,7 +42,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements ISmart {
-    //    private static final String filter_name = "MLink";
+    private static final String TAG = BlueISmartImpl.class.getName();
     private Ble<BleModelDevice> ble = null;
     private SmartListener mSmartListener = null;
     private Context mContext = null;
@@ -114,6 +115,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     @Override
     public void setDeviceInfo(boolean isOpen) {
+        BleLog.e(TAG, "setDeviceInfo:"+isOpen);
         this.isOpen=isOpen;
 
     }
@@ -187,6 +189,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             });
             return;
         }
+
         ble.startScan(bleScanCallback);
     }
 
@@ -295,6 +298,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     @Override
     public void onStartSmartConfig(String macCode, String ssid, String password, int delayMillis, ILinkSmartConfigListener mILinkSmartConfigListener) throws Exception {
+        BleLog.e(TAG, "onStartSmartConfig:"+"macCode:"+macCode+"ssid:"+ssid+"password:"+password);
         if (ble == null) {
             ble = Ble.getInstance();
         }
@@ -363,7 +367,7 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     ble.writeByUuid(modelDevice, bytes, Ble.options().getUuidService(), Ble.options().getUuidWriteCha(), new BleWriteCallback<BleModelDevice>() {
                                         @Override
                                         public void onWriteSuccess(BleModelDevice device, BluetoothGattCharacteristic characteristic) {
-                                            BleLog.e("onWriteSuccess", "onWriteSuccess");
+                                            BleLog.e("onWriteSuccess", "onWriteSuccess:"+device.getBleAddress());
                                         }
                                         @Override
                                         public void onWriteFailed(BleModelDevice device, int failedCode) {
@@ -430,15 +434,15 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                         BleLog.e("onChanged",errorMessage);
                                         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
                                         JSONObject jsonObject=new JSONObject();
-                                        String deviceId="";
+                                        String macCode="";
                                         boolean b = bluetoothDeviceStore.getDeviceMap().containsKey(device.getMacAddress());
                                         if (b){
                                             BleModelDevice bleModelDevice = bluetoothDeviceStore.getDeviceMap().get(device.getMacAddress());
-                                            deviceId=bleModelDevice.getMacAddress();
+                                            macCode=bleModelDevice.getMacAddress();
                                         }else {
-                                            deviceId=device.getBleAddress();
+                                            macCode=device.getBleAddress();
                                         }
-                                        jsonObject.put("mac",deviceId);
+                                        jsonObject.put("mac",macCode);
                                         jsonObject.put("deviceId",deviceName);
                                         if (mILinkSmartConfigListener!=null){
                                             mILinkSmartConfigListener.onLinkSmartConfigListener(errorCode, errorMessage, jsonObject.toString());
@@ -483,13 +487,14 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
                                     if (bytesValue!=null){
                                         deviceName = new String(bytesValue, "UTF-8");
                                         BleLog.e("deviceName",deviceName);
+                                        isOpen=false;
+                                        if (myGetDeviceInfoThread!=null){
+                                            myGetDeviceInfoThread.interrupt();
+                                            myGetDeviceInfoThread=null;
+                                        }
                                     }
                                 }
-                                isOpen=false;
-                                if (myGetDeviceInfoThread!=null){
-                                    myGetDeviceInfoThread.interrupt();
-                                    myGetDeviceInfoThread=null;
-                                }
+
                             }
                         }
                     }
@@ -531,7 +536,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
     @Override
     public void onDisConnect(String macCode) throws Exception {
         BleLog.e("onDisConnect", macCode+"**************");
-
         mILinkSmartConfigListener=null;
         handler.removeMessages(IBluetooth.Constant.DELAYMillis);
         isOpen=false;
@@ -563,7 +567,6 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
 
     @Override
     public void onDestory() throws Exception {
-        BleLog.e("onDestory","-----------------------------");
         if (ble != null) {
             ble.released();
         }
@@ -589,9 +592,10 @@ public class BlueISmartImpl extends BleWriteCallback<BleModelDevice> implements 
             deviceName="";
             while (isOpen){
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                     BluetoothProtocol bluetoothProtocol = new BluetoothProtocolImpl();
                     byte[] bytes = bluetoothProtocol.getDeviceInfo();
+                    Log.e("UART", "DeviceName"+HexUtil.encodeHexStr(bytes));
                     ble.writeByUuid(modelDevice, bytes,
                             Ble.options().getUuidService(),
                             Ble.options().getUuidWriteCha(),
