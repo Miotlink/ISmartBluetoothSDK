@@ -20,9 +20,6 @@ public class MiotSmartBluetoothSDK {
     private static volatile MiotSmartBluetoothSDK instance = null;
 
 
-
-
-
     public static synchronized MiotSmartBluetoothSDK getInstance() {
 
         if (instance == null) {
@@ -119,7 +116,6 @@ public class MiotSmartBluetoothSDK {
                 }
             }
         }).start();
-
     }
 
     private String macAddress="";
